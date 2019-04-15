@@ -1,8 +1,10 @@
 #make_EXE#
+
  
 cseg segment 'code'
-
-; Переход на новую строку в консоли
+;---
+; Go to a new line in the terminal
+;---
 new_line macro
 	push	ax
     mov 	ah, 0eh
@@ -10,11 +12,14 @@ new_line macro
     int 	10h
     mov 	al, 0dh
     int 	10h
-    pop 	ax  
+    pop 	ax
 endm
 
-; Очистка строки 
-; addr_str 	- адрес строки
+;---
+; Clean string
+;
+; @param    "?type?"    addr_str 
+;--
 clear_s macro addr_str
 local loop_begin
 	push	si
@@ -29,8 +34,11 @@ loop_begin:
 	pop 	si
 endm
 
-; Вывод строки, передаваемую как параметром
-; str - строка
+;--- 
+; Output string passed as a parameter
+;
+; @param string str
+;---
 print macro str
 local point, code
 	jmp		point
@@ -45,8 +53,11 @@ point:
 	pop		ds
 endm
 
-; Вывод строки
-; addr_str - адрес строки
+;--- 
+; Output string   
+;
+; @param    string address  addr_str
+;--- 
 print_s macro addr_str 
 	push	ax
 	push 	dx
@@ -55,13 +66,17 @@ print_s macro addr_str
 	int		21h
 	pop 	dx
 	pop 	ax	
-endm
+endm 
 
-; Вывод числа
-; Происходит конвертирование из числа в строку, в len
-; заносятится кол-во битов, несущие информацию
-; addr_str 	- адрес строки
-; num 		- число
+;--- 
+; Output number 
+;
+; Converting from number to string, to @var len
+; Save bits having information  
+;
+; @param    string address  addr_str
+; @param    number          num 
+;--- 
 print_n macro addr_str, num 
 local div_to_zero, reverse, exit
 	push 	si
@@ -108,7 +123,9 @@ exit:
 	pop		si	
 endm
 
-; Вывод значения с клавиатуры в переменную
+;---
+; Outputting values from keyboard to variable
+;---
 out_to macro addr_num
 local input_char, add_num, exit 
 	push 	ax
@@ -147,10 +164,14 @@ exit:
 	pop		ax
 endm
 
-; Помещение строки в файл
-; Сохраняет только len байт информации
-; addr_file_name	- адрес строки с названием файла
-; addr_result_str	- адрес строки с результатом
+;---
+; Save string to file
+;
+; Saves only @var len bytes of information
+;
+; @param    "?type?"    addr_file_name  file name
+; @param    "?type?"    addr_result_str result string	
+;---
 string_to_file macro addr_file_name, addr_result_str 
 	push	si
 	push	di
@@ -166,7 +187,6 @@ string_to_file macro addr_file_name, addr_result_str
 	mov 	ah, 3dh
 	mov 	al, 2
 	mov 	dx, offset addr_file_name
-	int 	21h
 	mov 	si, ax 
 	
 	mov 	ah, 40h  
@@ -178,18 +198,23 @@ string_to_file macro addr_file_name, addr_result_str
 	mov 	ah, 3eh
 	mov 	bx, si
 	int 	21h
+	
 	push 	dx
 	push 	cx
 	push 	bx
 	push 	ax
 	pop 	di	
 	pop 	si
-endm 
+endm
 
-; Помещение строки из файла в строку
-; Сохраняет максимум len_max байт информации
-; addr_file_name	- адрес строки с названием файла
-; addr_result_str	- адрес строки с результатом
+;---
+; Save string from file to @var
+;
+; Stores maximum len_max bytes of information 
+;
+; @param    "?type?"    addr_file_name  file name	
+; @param    "?type?"    addr_result_str result string	
+;---
 file_to_string macro addr_file_name, addr_result_str 
 	push	si
 	push	di
@@ -254,9 +279,9 @@ _main:
   	
   	add		res, ax
   	
-  	; Вывод результата на экран
+  	; Вывод результата на экран  
   	print	'Result: '
-  	print_n	string, res 
+  	print_n	string, res
   	
   	; Вывод результата в файл
   	string_to_file file_name, string
@@ -269,16 +294,23 @@ _main:
 cseg ends
 
 dseg segment byte
-	; Переменные
+;---
+; User variables
+;---
 	a 	dw ?
 	b 	dw ?
 	c 	dw ?	
 	res dw ?
 	
-	; Библиотечные переменные
+;---
+; Library variables
+; For developers only
+;---
 	string	db 8 dup('$') 
 	len_max = $ - string
 	len dw ?
-	file_name db 'myfile.txt', 0
-dseg ends
+	file_name db 'myfile.txt', 0  
+	
+dseg ends 
+
 end _main
